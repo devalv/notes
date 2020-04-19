@@ -101,7 +101,7 @@ date +"%Y%m%d%H%M"
 
 ## PostgreSQL
 
-Очень простая схема резервирования (детальные примеры в репозитории !ССЫЛКА)
+Очень простая схема резервирования ([uploader.py](https://github.com/devalv/aws_uploader))
 ```
 #!/bin/bash
 now=$(date +"%Y_%m_%d_%HH")'.back.7z'
