@@ -391,3 +391,23 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 4. Update initramfs bootfile ```sudo update-initramfs -u -k all```
 5. Reboot to test (optional)
 6. fn + x + l
+
+### Удалить запись из EFI boot loader
+1. Run a cmd.exe process with administrator privileges
+2. Run `diskpart`
+    + Type: list disk then sel disk X where X is the drive your boot files reside on
+    + Type list vol to see all partitions (volumes) on the disk (the EFI volume will be formatted in FAT, others will be NTFS)
+    + Select the EFI volume by typing: sel vol Y where Y is the SYSTEM volume (this is almost always the EFI partition)
+    + For convenience, assign a drive letter by typing: assign letter=Z: where Z is a free (unused) drive letter
+    + Type exit to leave disk part
+
+3. While still in the cmd prompt, type: Z: and hit enter, where Z was the drive letter you just created.
+    + Type dir to list directories on this mounted EFI partition
+    + If you are in the right place, you should see a directory called EFI
+    + Type cd EFI and then dir to list the child directories inside EFI
+    + Type rmdir /S ubuntu to delete the ubuntu boot directory
+
+4. Install efibootmgr `sudo apt-get install efibootmgr`
+5. `sudo modprobe efivars`
+6. `sudo efibootmgr`
+7. `sudo efibootmgr -b 5 -B`
