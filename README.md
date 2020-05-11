@@ -380,8 +380,93 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 ## Coverage
 Генерация отчета в формате html в файле htmlcov/index.html
 
-```cd $PYTHONPATH && pytest tests/ --cov-report html --cov ```
+```
+cd $PYTHONPATH && pytest tests/ --cov-report html --cov 
+```
 
+или 
+```
+python3 -m coverage run -m unittest discover tests/ && python3 -m coverage html
+```
+
+## pipenv
+установить dev-зависимости из Pipfile
+```
+pipenv install --dev
+```
+
+конкертировать Pipfile.lock в requirements.txt
+```
+pipenv lock --requirements > requirements.txt
+```
+
+активировать env 
+```
+pipenv shell
+```
+
+## codecov badge
+https://github.com/codecov/example-python
+
+## pypi packages
+https://packaging.python.org/tutorials/packaging-projects/
+
+Сборка пакета
+```
+python3 setup.py sdist bdist_wheel
+```
+
+## Github actions
+Пример автозапуска тестов при push и pull_request в дев и мастер.
+
+```
+# Runs tests and coverage measuring.
+name: tests
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pipenv
+        pip install flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f Pipfile ]; then pipenv install --dev; fi
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        pipenv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        pipenv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with unittest and build coverage xml report
+      run: |
+        pipenv run coverage run -m unittest discover tests/ && pipenv run coverage xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: true
+```
 ## Misc
 
 ### Permanent disable fn-mode for Keychron K2 in Ubuntu
