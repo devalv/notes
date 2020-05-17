@@ -377,17 +377,22 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 
 мердж миграций ```alembic merge heads```
 
-## Coverage
-Генерация отчета в формате html в файле htmlcov/index.html
-
+## pytest
+### Запуск flake8, прогон тестов pytest и построение отчета coverage
+**pytest.ini**
 ```
-cd $PYTHONPATH && pytest tests/ --cov-report html --cov 
+[pytest]
+addopts = -v -ra --flake8 --cov=<project_name> --cov-report=html
+testpaths = tests/
+markers =
+    config
+flake8-ignore =
+    E501
+    .git/*.* ALL
+    __pycache__/*.* ALL
+    tests/*.* ALL
 ```
-
-или 
-```
-python3 -m coverage run -m unittest discover tests/ && python3 -m coverage html
-```
+запуск: `pytest`
 
 ## pipenv
 установить dev-зависимости из Pipfile
