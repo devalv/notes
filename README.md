@@ -25,7 +25,6 @@ git reset --hard HEAD~1
 3. Настроить Git, чтобы он учитывал правила Flake8:
     ```git config --bool flake8.strict true```
     
-
 ### Git flow config
 [Описание](https://danielkummer.github.io/git-flow-cheatsheet/index.ru_RU.html)
 ```
@@ -376,7 +375,26 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 
 мердж миграций ```alembic merge heads```
 
-### Coverage
+### pytest
+
+#### Запуск flake8, прогон тестов pytest и построение отчета coverage
+
+**pytest.ini**
+```
+[pytest]
+addopts = -v -ra --flake8 --cov=<project_name> --cov-report=html
+testpaths = tests/
+markers =
+    config
+flake8-ignore =
+    E501
+    .git/*.* ALL
+    __pycache__/*.* ALL
+    tests/*.* ALL
+```
+запуск: `pytest`
+
+### coverage
 Генерация отчета в формате html в файле htmlcov/index.html
 
 ```
