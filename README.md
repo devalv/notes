@@ -25,6 +25,7 @@ git reset --hard HEAD~1
 3. Настроить Git, чтобы он учитывал правила Flake8:
     ```git config --bool flake8.strict true```
     
+
 ### Git flow config
 [Описание](https://danielkummer.github.io/git-flow-cheatsheet/index.ru_RU.html)
 ```
@@ -42,61 +43,56 @@ git reset --hard HEAD~1
     hooks = /home/user/PycharmProjects/some-project/.git/hooks
 ```
 
-## Terminal
+### Github Actions
+Пример автозапуска тестов при push и pull_request в дев и мастер.
 
-Kill process by name
 ```
-pkill python
-```
+# Runs tests and coverage measuring.
+name: tests
 
-Kill process by pid
-```
-kill 9476
-```
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
 
-Search process by port
-```
-lsof -i -P -n | grep LISTEN | grep 8888
-```
+jobs:
+  build:
 
-redirect 80 to 8888 via iptables
-```
-sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8888 && sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8888
-```
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5]
 
-Multi-ping
-```
-#!/bin/bash
-for i in {1..100}
-do
-	bash -c "ping 10.55.56.110 -i 0.200 -c 1000 -s 1000;" &
-done
-```
-
-Rsync
-```
-rsync -ave "ssh -p 5022" user@10.10.0.2:/mnt/media/some-project/logs/old_logs/ /home/user/backups/logs
-
-rsync --remove-source-files -m --include='*.back.7z' --exclude='*' -ave "ssh -p 5022" user@10.10.0.2:/data/backup/ /home/user/backups/Database
-
-rsync --delete -ave "ssh -p 5022" user@10.10.0.2:/mnt/media /home/user/backups/Media
-```
-
-Redis-cli
-```
-redis-cli -h 10.10.1.235 -p 6379 -a SeCrEt
-```
-
-### Dates
-
-Current unix-time
-```
-date +%s
-```
-
-Date in format 202004091032
-```
-date +"%Y%m%d%H%M"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pipenv
+        pip install flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f Pipfile ]; then pipenv install --dev; fi
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        pipenv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        pipenv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with unittest and build coverage xml report
+      run: |
+        pipenv run coverage run -m unittest discover tests/ && pipenv run coverage xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: true
 ```
 
 ## PostgreSQL
@@ -126,6 +122,7 @@ fi
 ```
 
 [Хороший скрипт резервных копий](https://github.com/devalv/bash/blob/master/postgrespro-backup.sh)
+
 ## logrotate
 
 Пример удобного конфига ротации логов
@@ -151,7 +148,7 @@ fi
 }
 ```
 
-## Nginx
+## nginx
 
 Если нет автопродления или нормального SSL. Если есть - принцип тот же, но все запросы с 80 порта редиректим на 443
  и основной конфиг прописываем там.
@@ -197,7 +194,7 @@ server {
 }
 ```
 
-## Supervisor
+## supervisor
 
 Конфиг супервизора для Tornado (форки внутри процесса)
 ```
@@ -268,7 +265,7 @@ psql -c "create database some-database encoding 'utf8' lc_collate = 'C.UTF-8' lc
 #pg_restore -d some-database /docker-entrypoint-initdb.d/20191021.tar
 ```
 
-### Nginx entry point
+### nginx entry point
 ```
 #!/bin/bash
 
@@ -368,7 +365,9 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 
 Скачать файл с архивом с S3 можно через веб-интерфейс. На S3 хранятся дампы не старше 3 дней.  Более старые версии нужно скачивать из Glacier, согласно инструкции.
 
-## Alembic
+## Python
+
+### Alembic
 применить все миграции ```alembic upgrade head```
 
 создание новой миграции ```alembic revision --autogenerate -m "migration text"```
@@ -377,7 +376,7 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 
 мердж миграций ```alembic merge heads```
 
-## Coverage
+### Coverage
 Генерация отчета в формате html в файле htmlcov/index.html
 
 ```
@@ -389,15 +388,21 @@ cd $PYTHONPATH && pytest tests/ --cov-report html --cov
 python3 -m coverage run -m unittest discover tests/ && python3 -m coverage html
 ```
 
-## pipenv
+### pipenv
+
 установить dev-зависимости из Pipfile
 ```
 pipenv install --dev
 ```
 
-конкертировать Pipfile.lock в requirements.txt
+пакеты из pipenv в requirements для pip
 ```
 pipenv lock --requirements > requirements.txt
+```
+
+dev-пакеты из pipenv в requirements для pip
+```
+pipenv lock --dev --requirements > dev_requirements.txt
 ```
 
 активировать env 
@@ -405,10 +410,12 @@ pipenv lock --requirements > requirements.txt
 pipenv shell
 ```
 
-## codecov badge
+### codecov badge
 https://github.com/codecov/example-python
 
-## pypi packages
+### Пакетирование Python
+
+#### PyPI
 https://packaging.python.org/tutorials/packaging-projects/
 
 Сборка пакета
@@ -416,57 +423,32 @@ https://packaging.python.org/tutorials/packaging-projects/
 python3 setup.py sdist bdist_wheel
 ```
 
-## Github actions
-Пример автозапуска тестов при push и pull_request в дев и мастер.
+#### deb-пакеты
 
+##### Актуализировать control для пакета
+`nano DEBIAN/control`
+
+##### Запустить pyinstaller
 ```
-# Runs tests and coverage measuring.
-name: tests
+# Добавить каталог dir и file.txt. Не собирать в 1 файл
+pyinstaller app.py -n binary_name --add-data "dir:dir" --add-data "file.txt:."
 
-on:
-  push:
-    branches: [ master, develop ]
-  pull_request:
-    branches: [ master, develop ]
-
-jobs:
-  build:
-
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.5]
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pipenv
-        pip install flake8
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        if [ -f Pipfile ]; then pipenv install --dev; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        pipenv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        pipenv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with unittest and build coverage xml report
-      run: |
-        pipenv run coverage run -m unittest discover tests/ && pipenv run coverage xml
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        flags: unittests
-        env_vars: OS,PYTHON
-        name: codecov-umbrella
-        fail_ci_if_error: true
+# Добавить каталог dir и собрать в 1 файл
+pyinstaller app.py -n binary_name --add-data "dir:dir" --add-data "file.txt:." -F
 ```
+
+##### Подготовить итоговую структуру
+```
+# Сценарий для /usr/bin
+mkdir -p binary_name/usr/bin && cp -r dist/* binary_name/usr/bin && cp -r DEBIAN/ binary_name/
+
+# Сценарий для установки в /opt
+mkdir -p binary_name/opt/binary_name && cp -r dist/* binary_name/opt && cp -r DEBIAN/ binary_name/
+```
+
+##### Собрать итоговый пакет
+`dpkg-deb -b binary_name`
+
 ## Misc
 
 ### Permanent disable fn-mode for Keychron K2 in Ubuntu
@@ -496,3 +478,60 @@ jobs:
 5. `sudo modprobe efivars`
 6. `sudo efibootmgr`
 7. `sudo efibootmgr -b 5 -B`
+
+### Terminal
+
+#### Kill process by name
+```
+pkill python
+```
+
+#### Kill process by pid
+```
+kill 9476
+```
+
+#### Search process by port
+```
+lsof -i -P -n | grep LISTEN | grep 8888
+```
+
+#### redirect 80 to 8888 via iptables
+```
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8888 && sudo iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8888
+```
+
+#### Multi-ping
+```
+#!/bin/bash
+for i in {1..100}
+do
+	bash -c "ping 10.55.56.110 -i 0.200 -c 1000 -s 1000;" &
+done
+```
+
+#### Rsync
+```
+rsync -ave "ssh -p 5022" user@10.10.0.2:/mnt/media/some-project/logs/old_logs/ /home/user/backups/logs
+
+rsync --remove-source-files -m --include='*.back.7z' --exclude='*' -ave "ssh -p 5022" user@10.10.0.2:/data/backup/ /home/user/backups/Database
+
+rsync --delete -ave "ssh -p 5022" user@10.10.0.2:/mnt/media /home/user/backups/Media
+```
+
+#### Redis-cli
+```
+redis-cli -h 10.10.1.235 -p 6379 -a SeCrEt
+```
+
+#### Dates
+
+Current unix-time
+```
+date +%s
+```
+
+Date in format 202004091032
+```
+date +"%Y%m%d%H%M"
+```
