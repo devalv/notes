@@ -147,106 +147,7 @@ fi
 }
 ```
 
-## nginx
-
-Если нет автопродления или нормального SSL. Если есть - принцип тот же, но все запросы с 80 порта редиректим на 443
- и основной конфиг прописываем там.
-```
-server {
-
-  listen 80;
-  listen 443 ssl;
-
-  client_max_body_size 1M;
-  charset utf-8;
-  gzip on;
-
-  access_log /var/log/nginx/some-project.acc;
-  error_log /var/log/nginx/some-project.err;
-
-  ssl_certificate     /opt/some-project/ssl/default.crt;
-  ssl_certificate_key /opt/some-project/ssl/default.key;
-
-  proxy_read_timeout          180s;
-  proxy_connect_timeout       180s;
-  proxy_send_timeout          180s;
-  proxy_redirect              off;
-  proxy_http_version          1.1;
-
-  proxy_set_header Upgrade    $http_upgrade;
-  proxy_set_header Connection $http_connection;
-  proxy_set_header Host       $host;
-  proxy_set_header X-Real-IP  $remote_addr;
-  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-
-  # pass requests for dynamic content to tornado
-  location /internal-api/ {
-    proxy_pass  http://127.0.0.1:8888/;
-  }
-
-  # serve static files
-  location / {
-    root /opt/some-project/frontend;
-    try_files $uri$args $uri$args/ /index.html;
-    expires 7d;
-  }
-}
-```
-
-## supervisor
-
-Конфиг супервизора для Tornado (форки внутри процесса)
-```
-# -*- conf -*-
-
-[program:some-project-8888]
-command=/usr/local/bin/pipenv run python app.py --access_to_stdout=True --logging=debug --port=8888 --debug=True --autoreload=False --log_file_prefix=/var/log/some-project/tornado.log  --workers=0
-process_name=%(program_name)s
-directory=/opt/some-project/backend
-environment=PYTHONPATH=/opt/some-project/backend
-autorestart=unexpected
-autostart=true
-startretries=3
-stopsignal=TERM
-stopasgroup=true
-killasgroup=true
-```
-
 ## Docker
-
-### docker-compose
-```
-version: '3.7'
-services:
-  postgres:
-    image: postgres:9.6
-    ports:
-        - 5432:5432
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    container_name: postgres
-    volumes:
-      - ./postgres/:/docker-entrypoint-initdb.d/
-  frontend-dev:
-    image: teracy/angular-cli
-    ports:
-      - 4200:4200
-    container_name: angular-dev
-    volumes:
-      - ./frontend:/opt/some-project
-    command: sh /opt/some-project/entrypoint.sh -dev
-  nginx-proxy:
-    image: nginx
-    container_name: nginx
-    volumes:
-      - ./nginx:/opt/some-project
-      - ../conf:/opt/some-project/conf
-      - ../../frontend/:/opt/some-project/frontend
-    command: sh /opt/some-project/entrypoint.sh
-    network_mode: host
-```
 
 ### Postgres entry point
 ```
@@ -262,79 +163,6 @@ psql -c "create database some-database encoding 'utf8' lc_collate = 'C.UTF-8' lc
 
 #echo "Running pg_restore"
 #pg_restore -d some-database /docker-entrypoint-initdb.d/20191021.tar
-```
-
-### nginx entry point
-```
-#!/bin/bash
-
-APP_DIR=/opt/some-project/conf
-cd $APP_DIR || exit
-echo "Stopping nginx..."
-/etc/init.d/nginx stop
-echo "Removing default config file..."
-rm /etc/nginx/conf.d/default.conf
-echo "Copy local config to nginx default dir"
-cp nginx-dev.conf /etc/nginx/conf.d/default.conf
-echo "Checking nginx config file..."
-/etc/init.d/nginx configtest
-echo "Starting nginx..."
-nginx -g 'daemon off;'
-echo "Nginx status is:"
-/etc/init.d/nginx status
-```
-
-### Angular entry point
-```
-#!/bin/bash
-
-APP_DIR=/opt/some-project/frontend
-cd $APP_DIR || exit
-
-usage() {
-  cat <<-EOF
-  Usage: sh /opt/some-project/entrypoint.sh [options]
-  Options:
-    -h,    --help                 output help information
-    -dev,  --development          install dependencies and run live angular server
-    -prod, --production           clean install dependenciec and build angular with production arg
-EOF
-}
-
-dev() {
-  echo "Install dependencies and run live Angular server"
-  echo "Directory is:";
-  pwd;
-  echo "Removing old dist and node_modules:"
-  rm -rf node_modules dist;
-  echo "Installing dependencies via npm:"
-  npm install --unsafe-perm;
-  echo "Running angular-live:"
-  npm start -- -c=docker --host=0.0.0.0
-}
-
-prod() {
-  echo "Clean install dependencies and build Angular with production arg";
-  echo "Directory is:"
-  pwd;
-  echo "Removing old dist and node_modules:"
-  rm -rf node_modules dist;
-  echo "Installing dependencies via npm:"
-  npm install --unsafe-perm;
-  echo "Building code:"
-  npm run build -- --prod
-  echo "Code compilation completed. Files are in: frontend/"
-}
-
-# parse argv
-while test $# -ne 0; do
-  arg=$1; shift
-  case $arg in
-    -h|--help) usage; exit ;;
-    -dev|--development) dev; exit ;;
-    -prod|--production) prod; exit ;;
-  esac
-done
 ```
 
 ## SSL
@@ -365,15 +193,6 @@ acme.sh --install-cert -d devyatkin.dev --key-file /opt/some-project/ssl/key.pem
 Скачать файл с архивом с S3 можно через веб-интерфейс. На S3 хранятся дампы не старше 3 дней.  Более старые версии нужно скачивать из Glacier, согласно инструкции.
 
 ## Python
-
-### Alembic
-применить все миграции ```alembic upgrade head```
-
-создание новой миграции ```alembic revision --autogenerate -m "migration text"```
-
-создание пустой миграции ```alembic revision -m "create account table"```
-
-мердж миграций ```alembic merge heads```
 
 ### pytest
 
@@ -499,16 +318,6 @@ mkdir -p binary_name/opt/binary_name && cp -r dist/* binary_name/opt && cp -r DE
 
 ### Terminal
 
-#### Kill process by name
-```
-pkill python
-```
-
-#### Kill process by pid
-```
-kill 9476
-```
-
 #### Search process by port
 ```
 lsof -i -P -n | grep LISTEN | grep 8888
@@ -535,21 +344,4 @@ rsync -ave "ssh -p 5022" user@10.10.0.2:/mnt/media/some-project/logs/old_logs/ /
 rsync --remove-source-files -m --include='*.back.7z' --exclude='*' -ave "ssh -p 5022" user@10.10.0.2:/data/backup/ /home/user/backups/Database
 
 rsync --delete -ave "ssh -p 5022" user@10.10.0.2:/mnt/media /home/user/backups/Media
-```
-
-#### Redis-cli
-```
-redis-cli -h 10.10.1.235 -p 6379 -a SeCrEt
-```
-
-#### Dates
-
-Current unix-time
-```
-date +%s
-```
-
-Date in format 202004091032
-```
-date +"%Y%m%d%H%M"
 ```
