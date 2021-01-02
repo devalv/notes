@@ -28,3 +28,5 @@ jobs:
     # Runs a single command using the runners shell
     - name: Send greeting
       run: pwd && ls -lah && git --version
+    - name: Clone wiki repo
+      run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
