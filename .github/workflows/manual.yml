@@ -26,14 +26,12 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Runs a single command using the runners shell
-    - name: Send greeting
-      run: pwd && ls -lah && git --version
     - name: Clone wiki repo
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
-    - name: Copy existing md to repo
-      run: cp notes.wiki/*.md . && ls -lah
-    - uses: actions/upload-artifact@v2
+    - uses: stefanzweifel/git-auto-commit-action@v4
       with:
-        name: my-artifact
-        path: Home.md
+        commit_message: Apply automatic changes from Wiki
+        branch: master
+        file_pattern: notes.wiki/*.md
+       
 
