@@ -30,10 +30,10 @@ jobs:
         ref: ${{ github.head_ref }}
     - name: Clone wiki repo
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
+    - name: Copy md files from Wiki
+      run: cp notes.wiki/*.md .
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Apply automatic changes from Wiki
         branch: master
-        file_pattern: notes.wiki/*.md
-       
-
+        file_pattern: *.md
