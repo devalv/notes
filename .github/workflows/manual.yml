@@ -32,3 +32,10 @@ jobs:
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
     - name: Copy existing md to repo
       run: cp notes.wiki/*.md . && ls -lah
+    - name: Remove and Commit
+      run: git add *.md && git commit
+    - uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact
+        path: Home.md
+
