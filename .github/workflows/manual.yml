@@ -25,7 +25,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
     - name: Clone wiki repo
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
     - uses: stefanzweifel/git-auto-commit-action@v4
