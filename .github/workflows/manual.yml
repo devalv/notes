@@ -17,6 +17,8 @@ jobs:
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
     - name: Copy md files from Wiki
       run: cp -f notes.wiki/*.md .
+    - name: Rename sidebar to README.md
+      run: cat _Sidebar.md >> Home.md && mv -f Home.md README.md && rm -f _Sidebar.md
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Apply automatic changes from Wiki
