@@ -36,4 +36,4 @@ jobs:
       with:
         commit_message: Apply automatic changes from Wiki
         branch: master
-        file_pattern: *.md
+        file_pattern: ./*.md
