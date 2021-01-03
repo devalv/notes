@@ -15,6 +15,8 @@ jobs:
         ref: ${{ github.head_ref }}
     - name: Clone wiki repo
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
+    - name: Remove previously moved files
+      run: rm -rf docs/ && mkdir -p docs/
     - name: Copy md files from Wiki
       run: cp -f notes.wiki/*.md docs/.
     - name: Rename sidebar to README.md
