@@ -1,37 +1,22 @@
-# This is a basic workflow that is manually triggered
+# Pull md-files from repo`s Wiki and commit it to repository root.
 
-name: Manual workflow
+name: wiki-to-repo
 
-# Controls when the action will run. Workflow runs when manually triggered using the UI
-# or API.
 on:
-  workflow_dispatch:
-#     Inputs the workflow accepts.
-#     inputs:
-#       name:
-#         # Friendly description to be shown in the UI instead of 'name'
-#         description: 'Person to greet'
-#         # Default value if no value is explicitly provided
-#         default: 'World'
-#         # Input has to be provided for the workflow to run
-#         required: true
+    workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "greet"
-  greet:
-    # The type of runner that the job will run on
+  from-wiki:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - uses: actions/checkout@v2
       with:
+        token: ${{ secrets.PAT }}
         ref: ${{ github.head_ref }}
     - name: Clone wiki repo
       run: git clone https://github.com/devalv/notes.wiki.git && ls -lah
     - name: Copy md files from Wiki
-      run: cp notes.wiki/*.md .
+      run: cp -f notes.wiki/*.md .
     - uses: stefanzweifel/git-auto-commit-action@v4
       with:
         commit_message: Apply automatic changes from Wiki
