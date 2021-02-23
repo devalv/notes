@@ -15,6 +15,7 @@ A few useful notes and blueprints.
 * [logrotate](https://github.com/devalv/notes/wiki/logrotate)
 * [Misc](https://github.com/devalv/notes/wiki/Misc)
    * [fn-mode for Keychron K2](https://github.com/devalv/notes/wiki/Misc#permanent-disable-fn-mode-for-keychron-k2-in-ubuntu)
+   * [fn-mode for Logitech K400+](https://github.com/devalv/notes/wiki/Misc#permament-disable-fn-mode-for-logitech-k400-in-ubuntu)
    * [EFI](https://github.com/devalv/notes/wiki/Misc#%D0%A3%D0%B4%D0%B0%D0%BB%D0%B8%D1%82%D1%8C-%D0%B7%D0%B0%D0%BF%D0%B8%D1%81%D1%8C-%D0%B8%D0%B7-efi-boot-loader)
    * [Terminal](https://github.com/devalv/notes/wiki/Misc#terminal)
 * [nginx](https://github.com/devalv/notes/wiki/nginx)
