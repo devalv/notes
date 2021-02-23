@@ -6,6 +6,15 @@
 1. Reboot to test (optional)
 1. fn + x + l
 
+## Permament disable fn-mode for Logitech K400+ in Ubuntu
+1. Install Solaar from github
+```
+sudo add-apt-repository ppa:solaar-unifying/stable
+sudo apt-get update
+```
+2. Swap fn-mode via solar
+```solaar config k400 fn-swap False```
+
 ***
 
 ## Удалить запись из EFI boot loader
