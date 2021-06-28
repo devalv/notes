@@ -23,6 +23,7 @@ A few useful notes and blueprints.
 * [SSL](https://github.com/devalv/notes/wiki/SSL)
 * [supervisor](https://github.com/devalv/notes/wiki/supervisor)
 * [Python](https://github.com/devalv/notes/wiki/Python)
+   * [pyenv & macOS](https://github.com/devalv/notes/wiki/Python#pyenv--macos)
    * [Alembic](https://github.com/devalv/notes/wiki/Python#alembic)
    * [pytest](https://github.com/devalv/notes/wiki/Python#pytest)
    * [coverage](https://github.com/devalv/notes/wiki/Python#coverage)

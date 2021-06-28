@@ -1,4 +1,6 @@
-## Решение проблемы с установкой Python 3.8 в pyenv на macOS
+## pyenv & macOS
+Решение проблемы с установкой Python 3.8 в pyenv на macOS
+
 ```bash
 xcode-select --install
 brew install zlib bzip2
