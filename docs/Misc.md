@@ -13,7 +13,7 @@ sudo add-apt-repository ppa:solaar-unifying/stable
 sudo apt-get update
 ```
 2. Swap fn-mode via solar
-```solaar config k400 fn-swap False```
+```solaar config 1 fn-swap no```
 
 ***
 
